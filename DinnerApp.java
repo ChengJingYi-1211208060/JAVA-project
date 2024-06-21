@@ -45,7 +45,7 @@ public class DinnerApp extends JFrame {
         loadUsers();
         dinners = new ArrayList<>();
         loadDinners();  // Load dinners from the centralized file
-        setTitle("Dinner Manager");
+        setTitle("Diner Manager");
         setLayout(new BorderLayout());
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -197,7 +197,7 @@ public class DinnerApp extends JFrame {
                 JTextField descriptionField = new JTextField(dinner.getDescription(), 20);
 
                 JPanel panel = new JPanel(new GridLayout(2, 2));
-                panel.add(new JLabel("Dinner:"));
+                panel.add(new JLabel("Diner:"));
                 panel.add(dinnerField);
                 panel.add(new JLabel("Description:"));
                 panel.add(descriptionField);
