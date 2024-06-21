@@ -234,9 +234,12 @@ public class DinnerApp extends JFrame {
     private class LoginListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             if (currentUser != null) {
+                int confirm = JOptionPane.showConfirmDialog(null, "Are you sure you want to logout ? ");
+                if (confirm == JOptionPane.YES_OPTION) {
                 currentUser = null;
                 updateButtonsState();
                 JOptionPane.showMessageDialog(null, "Logged out successfully.");
+                }
             } else {
                 JTextField usernameField = new JTextField(10);
                 JPasswordField passwordField = new JPasswordField(10);
