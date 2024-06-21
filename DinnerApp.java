@@ -185,9 +185,12 @@ public class DinnerApp extends JFrame {
         public void actionPerformed(ActionEvent e) {
             int selectedIndex = dinnerList.getSelectedIndex();
             if (selectedIndex != -1) {
-                dinners.remove(selectedIndex);
-                refreshDinnerList();
-                saveDinners();
+                int confirm = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete this dinner?", "Delete Confirmation", JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    dinners.remove(selectedIndex);
+                    refreshDinnerList();
+                    saveDinners();
+                }
             }
         }
     }
@@ -234,7 +237,7 @@ public class DinnerApp extends JFrame {
     private class LoginListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             if (currentUser != null) {
-                int confirm = JOptionPane.showConfirmDialog(null, "Are you sure you want to logout ? ");
+                int confirm = JOptionPane.showConfirmDialog(null, "Are you sure you want to logout ?", "Logout Confirmation", JOptionPane.YES_NO_OPTION);
                 if (confirm == JOptionPane.YES_OPTION) {
                 currentUser = null;
                 updateButtonsState();
