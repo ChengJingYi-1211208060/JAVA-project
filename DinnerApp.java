@@ -123,7 +123,7 @@ public class DinnerApp extends JFrame {
     }
 
     private void loadUsers() {
-        try (BufferedReader br = new BufferedReader(new FileReader("users.txt"))) {
+        try (BufferedReader br = new BufferedReader(new FileReader("admin.txt"))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(":");
