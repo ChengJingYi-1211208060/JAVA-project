@@ -3,85 +3,43 @@ import java.awt.*; // Layout Manager
 import java.awt.event.*; // Event Handling
 import java.io.*; // Reading and Writing to a binary file
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
-class Dinner implements Serializable {
-    private String name;
-    private String description;
-
-    public Dinner(String name, String description) {
-        this.name = name;
-        this.description = description;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public String toString() {
-        return name;
-    }
-}
-
 public class DinnerApp extends JFrame {
-    private ArrayList<Dinner> dinners;
+    private ArrayList<String> dinners;
     private JTextField dinnerInput;
-    private JTextField descriptionInput;
-    private DefaultListModel<Dinner> listModel;
-    private JList<Dinner> dinnerList;
-    private String currentUser;
-    private Map<String, String> users;
-    private JButton addButton, deleteButton, editButton, loginButton;
+    private DefaultListModel<String> listModel;
+    private JList<String> dinnerList;
 
     public DinnerApp() {
-        users = new HashMap<>();
-        loadUsers();
         dinners = new ArrayList<>();
+        loadDinners();
+
         setTitle("Dinner Manager");
         setLayout(new BorderLayout());
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        initUI();
-        refreshDinnerList();
-        setVisible(true);
-    }
-
-    private void initUI() {
         dinnerInput = new JTextField(10);
-        descriptionInput = new JTextField(20);
-        addButton = createButton("add.png");
-        deleteButton = createButton("delete.png");
-        editButton = createButton("edit.png");
+        JButton addButton = createButton("add.png");
+        JButton deleteButton = createButton("delete.png");
+        JButton editButton = createButton("edit.png");
         JButton randomButton = createButton("random.png");
-        loginButton = new JButton("Login");
 
         addButton.addActionListener(new AddDinnerListener());
         deleteButton.addActionListener(new DeleteDinnerListener());
         editButton.addActionListener(new EditDinnerListener());
         randomButton.addActionListener(new RandomDinnerListener());
-        loginButton.addActionListener(new LoginListener());
 
         listModel = new DefaultListModel<>(); // Helper class
         dinnerList = new JList<>(listModel); // JComponent
         dinnerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        dinnerList.addMouseListener(new DinnerMouseListener());
 
         JPanel inputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         inputPanel.add(new JLabel("Dinner:"));
         inputPanel.add(dinnerInput);
-        inputPanel.add(new JLabel("Description:"));
-        inputPanel.add(descriptionInput);
 
-        JPanel buttonPanel = new JPanel(new GridLayout(5, 1, 5, 5));
-        buttonPanel.add(loginButton);
+        JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 5, 5));
         buttonPanel.add(addButton);
         buttonPanel.add(deleteButton);
         buttonPanel.add(editButton);
@@ -95,7 +53,8 @@ public class DinnerApp extends JFrame {
         add(topPanel, BorderLayout.NORTH);
         add(new JScrollPane(dinnerList), BorderLayout.CENTER); // JComponent
 
-        updateButtonsState();
+        refreshDinnerList();
+        setVisible(true);
     }
 
     private JButton createButton(String imagePath) { // Helper method for creating buttons with icons
@@ -112,7 +71,7 @@ public class DinnerApp extends JFrame {
     @SuppressWarnings("unchecked")
     private void loadDinners() {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("dinners.dat"))) {
-            dinners = (ArrayList<Dinner>) ois.readObject();
+            dinners = (ArrayList<String>) ois.readObject();
         } catch (Exception e) {
             dinners = new ArrayList<>();
         }
@@ -126,57 +85,21 @@ public class DinnerApp extends JFrame {
         }
     }
 
-    private void loadUsers() {
-        try (BufferedReader br = new BufferedReader(new FileReader("users.txt"))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(":");
-                if (parts.length == 2) {
-                    users.put(parts[0], parts[1]);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void saveUsers() {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter("users.txt"))) {
-            for (Map.Entry<String, String> entry : users.entrySet()) {
-                bw.write(entry.getKey() + ":" + entry.getValue());
-                bw.newLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     private void refreshDinnerList() {
         listModel.clear();
-        for (Dinner dinner : dinners) {
+        for (String dinner : dinners) {
             listModel.addElement(dinner);
         }
     }
 
-    private void updateButtonsState() {
-        boolean loggedIn = currentUser != null;
-        addButton.setEnabled(loggedIn);
-        deleteButton.setEnabled(loggedIn);
-        editButton.setEnabled(loggedIn);
-        loginButton.setText(loggedIn ? "Logout" : "Login");
-    }
-
     private class AddDinnerListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            String dinnerName = dinnerInput.getText();
-            String description = descriptionInput.getText();
-            if (!dinnerName.isEmpty()) {
-                Dinner dinner = new Dinner(dinnerName, description);
+            String dinner = dinnerInput.getText();
+            if (!dinner.isEmpty()) {
                 dinners.add(dinner);
                 refreshDinnerList();
                 saveDinners();
                 dinnerInput.setText("");
-                descriptionInput.setText("");
             }
         }
     }
@@ -196,25 +119,11 @@ public class DinnerApp extends JFrame {
         public void actionPerformed(ActionEvent e) {
             int selectedIndex = dinnerList.getSelectedIndex();
             if (selectedIndex != -1) {
-                Dinner dinner = dinners.get(selectedIndex);
-                JTextField dinnerField = new JTextField(dinner.getName(), 10);
-                JTextField descriptionField = new JTextField(dinner.getDescription(), 20);
-
-                JPanel panel = new JPanel(new GridLayout(2, 2));
-                panel.add(new JLabel("Dinner:"));
-                panel.add(dinnerField);
-                panel.add(new JLabel("Description:"));
-                panel.add(descriptionField);
-
-                int result = JOptionPane.showConfirmDialog(null, panel, "Edit Dinner", JOptionPane.OK_CANCEL_OPTION);
-                if (result == JOptionPane.OK_OPTION) {
-                    String newDinnerName = dinnerField.getText();
-                    String newDescription = descriptionField.getText();
-                    if (!newDinnerName.isEmpty()) {
-                        dinners.set(selectedIndex, new Dinner(newDinnerName, newDescription));
-                        refreshDinnerList();
-                        saveDinners();
-                    }
+                String newDinner = JOptionPane.showInputDialog("Edit Dinner", dinners.get(selectedIndex));
+                if (newDinner != null && !newDinner.isEmpty()) {
+                    dinners.set(selectedIndex, newDinner);
+                    refreshDinnerList();
+                    saveDinners();
                 }
             }
         }
@@ -225,62 +134,7 @@ public class DinnerApp extends JFrame {
             if (!dinners.isEmpty()) {
                 Random rand = new Random();
                 int randomIndex = rand.nextInt(dinners.size());
-                Dinner dinner = dinners.get(randomIndex);
-                JOptionPane.showMessageDialog(null, "Random Dinner: " + dinner.getName() + "\nDescription: " + dinner.getDescription());
-            }
-        }
-    }
-
-    private class LoginListener implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            if (currentUser != null) {
-                currentUser = null;
-                dinners.clear();
-                refreshDinnerList();
-                updateButtonsState();
-                JOptionPane.showMessageDialog(null, "Logged out successfully.");
-            } else {
-                JTextField usernameField = new JTextField(10);
-                JPasswordField passwordField = new JPasswordField(10);
-
-                JPanel panel = new JPanel(new GridLayout(3, 2));
-                panel.add(new JLabel("Username:"));
-                panel.add(usernameField);
-                panel.add(new JLabel("Password:"));
-                panel.add(passwordField);
-
-                int result = JOptionPane.showConfirmDialog(null, panel, "Login/Register", JOptionPane.OK_CANCEL_OPTION);
-                if (result == JOptionPane.OK_OPTION) {
-                    String username = usernameField.getText();
-                    String password = new String(passwordField.getPassword());
-                    if (users.containsKey(username)) {
-                        if (users.get(username).equals(password)) {
-                            currentUser = username;
-                            loadDinners();
-                        } else {
-                            JOptionPane.showMessageDialog(null, "Incorrect password. Please try again.");
-                            actionPerformed(e); // Reopen login dialog
-                        }
-                    } else {
-                        users.put(username, password);
-                        saveUsers();
-                        currentUser = username;
-                        loadDinners();
-                    }
-                    updateButtonsState();
-                }
-            }
-        }
-    }
-
-    private class DinnerMouseListener extends MouseAdapter {
-        public void mouseClicked(MouseEvent e) {
-            if (e.getClickCount() == 2) {
-                int index = dinnerList.locationToIndex(e.getPoint());
-                if (index != -1) {
-                    Dinner dinner = dinners.get(index);
-                    JOptionPane.showMessageDialog(null, "Dinner Information: " + dinner.getName() + "\nDescription: " + dinner.getDescription());
-                }
+                JOptionPane.showMessageDialog(null, "Random Dinner: " + dinners.get(randomIndex));
             }
         }
     }
