@@ -137,7 +137,7 @@ public class DinnerApp extends JFrame {
     }
 
     private void saveUsers() {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter("users.txt"))) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("admin.txt"))) {
             for (Map.Entry<String, String> entry : users.entrySet()) {
                 bw.write(entry.getKey() + ":" + entry.getValue());
                 bw.newLine();
