@@ -1,7 +1,7 @@
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
+import javax.swing.*; // JComponent
+import java.awt.*; // Layout Manager
+import java.awt.event.*; // Event Handling
+import java.io.*; // Reading and Writing to a binary file
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -69,8 +69,8 @@ public class DinnerApp extends JFrame {
         randomButton.addActionListener(new RandomDinnerListener());
         loginButton.addActionListener(new LoginListener());
 
-        listModel = new DefaultListModel<>();
-        dinnerList = new JList<>(listModel);
+        listModel = new DefaultListModel<>(); // Helper class
+        dinnerList = new JList<>(listModel); // JComponent
         dinnerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         dinnerList.addMouseListener(new DinnerMouseListener());
 
@@ -87,17 +87,21 @@ public class DinnerApp extends JFrame {
         buttonPanel.add(editButton);
         buttonPanel.add(randomButton);
 
-        add(inputPanel, BorderLayout.NORTH);
-        add(buttonPanel, BorderLayout.WEST);
-        add(new JScrollPane(dinnerList), BorderLayout.CENTER);
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BorderLayout());
+        topPanel.add(inputPanel, BorderLayout.NORTH);
+        topPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        add(topPanel, BorderLayout.NORTH);
+        add(new JScrollPane(dinnerList), BorderLayout.CENTER); // JComponent
 
         updateButtonsState();
     }
 
-    private JButton createButton(String imagePath) {
-        ImageIcon icon = new ImageIcon(imagePath);
+    private JButton createButton(String imagePath) { // Helper method for creating buttons with icons
+        ImageIcon icon = new ImageIcon(imagePath); // ImageIcon
         Image image = icon.getImage().getScaledInstance(50, 50, Image.SCALE_SMOOTH);
-        JButton button = new JButton(new ImageIcon(image));
+        JButton button = new JButton(new ImageIcon(image)); // JComponent
         button.setPreferredSize(new Dimension(50, 50));
         button.setMaximumSize(new Dimension(50, 50));
         button.setMinimumSize(new Dimension(50, 50));
@@ -105,6 +109,7 @@ public class DinnerApp extends JFrame {
         return button;
     }
 
+    @SuppressWarnings("unchecked")
     private void loadDinners() {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("dinners.dat"))) {
             dinners = (ArrayList<Dinner>) ois.readObject();
@@ -114,7 +119,7 @@ public class DinnerApp extends JFrame {
     }
 
     private void saveDinners() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("dinners.dat"))) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("dinners.txt"))) { //binary file
             oos.writeObject(dinners);
         } catch (IOException e) {
             e.printStackTrace();
