@@ -38,7 +38,7 @@ public class DinnerApp extends JFrame {
     private JList<Dinner> dinnerList;
     private String currentUser;
     private Map<String, String> users;
-    private JButton addButton, deleteButton, editButton, loginButton;
+    private JButton addButton, deleteButton, editButton, loginButton, registerButton;
 
     public DinnerApp() {
         users = new HashMap<>();
@@ -63,12 +63,14 @@ public class DinnerApp extends JFrame {
         editButton = createButton("edit.png");
         JButton randomButton = createButton("random.png");
         loginButton = new JButton("Login");
+        registerButton = new JButton("Register");
 
         addButton.addActionListener(new AddDinnerListener());
         deleteButton.addActionListener(new DeleteDinnerListener());
         editButton.addActionListener(new EditDinnerListener());
         randomButton.addActionListener(new RandomDinnerListener());
         loginButton.addActionListener(new LoginListener());
+        registerButton.addActionListener(new RegisterListener());
 
         listModel = new DefaultListModel<>();
         dinnerList = new JList<>(listModel);
@@ -76,13 +78,14 @@ public class DinnerApp extends JFrame {
         dinnerList.addMouseListener(new DinnerMouseListener());
 
         JPanel inputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        inputPanel.add(new JLabel("Dinner:"));
+        inputPanel.add(new JLabel("Diner:"));
         inputPanel.add(dinnerInput);
         inputPanel.add(new JLabel("Description:"));
         inputPanel.add(descriptionInput);
 
-        JPanel buttonPanel = new JPanel(new GridLayout(5, 1, 5, 5));
+        JPanel buttonPanel = new JPanel(new GridLayout(6, 1, 5, 5));
         buttonPanel.add(loginButton);
+        buttonPanel.add(registerButton);
         buttonPanel.add(addButton);
         buttonPanel.add(deleteButton);
         buttonPanel.add(editButton);
@@ -160,6 +163,7 @@ public class DinnerApp extends JFrame {
         deleteButton.setEnabled(loggedIn);
         editButton.setEnabled(loggedIn);
         loginButton.setText(loggedIn ? "Logout" : "Login");
+        registerButton.setVisible(!loggedIn); // Hide register button if logged in
     }
 
     private class AddDinnerListener implements ActionListener {
@@ -243,7 +247,7 @@ public class DinnerApp extends JFrame {
                 panel.add(new JLabel("Password:"));
                 panel.add(passwordField);
 
-                int result = JOptionPane.showConfirmDialog(null, panel, "Login/Register", JOptionPane.OK_CANCEL_OPTION);
+                int result = JOptionPane.showConfirmDialog(null, panel, "Login", JOptionPane.OK_CANCEL_OPTION);
                 if (result == JOptionPane.OK_OPTION) {
                     String username = usernameField.getText();
                     String password = new String(passwordField.getPassword());
@@ -255,11 +259,39 @@ public class DinnerApp extends JFrame {
                             actionPerformed(e); // Reopen login dialog
                         }
                     } else {
-                        users.put(username, password);
-                        saveUsers();
-                        currentUser = username;
+                        JOptionPane.showMessageDialog(null, "Username not found. Please register first.");
                     }
                     updateButtonsState();
+                }
+            }
+        }
+    }
+
+    private class RegisterListener implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            JTextField usernameField = new JTextField(10);
+            JPasswordField passwordField = new JPasswordField(10);
+
+            JPanel panel = new JPanel(new GridLayout(3, 2));
+            panel.add(new JLabel("New Username:"));
+            panel.add(usernameField);
+            panel.add(new JLabel("New Password:"));
+            panel.add(passwordField);
+
+            int result = JOptionPane.showConfirmDialog(null, panel, "Register", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.OK_OPTION) {
+                String username = usernameField.getText();
+                String password = new String(passwordField.getPassword());
+                if (username.isEmpty() || password.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Username and password cannot be empty.");
+                    return;
+                }
+                if (users.containsKey(username)) {
+                    JOptionPane.showMessageDialog(null, "Username already exists. Please choose a different one.");
+                } else {
+                    users.put(username, password);
+                    saveUsers();
+                    JOptionPane.showMessageDialog(null, "User registered successfully.");
                 }
             }
         }
@@ -278,6 +310,7 @@ public class DinnerApp extends JFrame {
     }
 
     public static void main(String[] args) {
-        new DinnerApp();
+        SwingUtilities.invokeLater(() -> new DinnerApp());
     }
 }
+
