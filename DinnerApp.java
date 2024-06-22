@@ -39,19 +39,23 @@ public class DinnerApp extends JFrame {
     private String currentUser;
     private Map<String, String> users;
     private JButton addButton, deleteButton, editButton, loginButton, registerButton;
+    private JLabel welcomeLabel;
+    private static final Dinner[] defaultDinners = {
+        new Dinner("McDonalds", "Fast food chain"),
+        new Dinner("KFC", "Fast food chain specializing in fried chicken"),
+        new Dinner("Pizza Hut", "Pizza restaurant chain")
+    };
 
     public DinnerApp() {
         users = new HashMap<>();
         loadUsers();
         dinners = new ArrayList<>();
-        loadDinners();  // Load dinners from the centralized file
-        setTitle("Diner Manager");
+        setTitle("Dinner Manager");
         setLayout(new BorderLayout());
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         initUI();
-        refreshDinnerList();
         setVisible(true);
     }
 
@@ -77,11 +81,21 @@ public class DinnerApp extends JFrame {
         dinnerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         dinnerList.addMouseListener(new DinnerMouseListener());
 
+        welcomeLabel = new JLabel();
+        updateWelcomeLabel();
+
         JPanel inputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        inputPanel.add(new JLabel("Diner:"));
+        inputPanel.add(new JLabel("Dinner:"));
         inputPanel.add(dinnerInput);
         inputPanel.add(new JLabel("Description:"));
         inputPanel.add(descriptionInput);
+
+        JPanel welcomePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        welcomePanel.add(welcomeLabel);
+
+        JPanel combinedPanel = new JPanel(new BorderLayout());
+        combinedPanel.add(inputPanel, BorderLayout.NORTH);
+        combinedPanel.add(welcomePanel, BorderLayout.SOUTH);
 
         JPanel buttonPanel = new JPanel(new GridLayout(6, 1, 5, 5));
         buttonPanel.add(loginButton);
@@ -91,11 +105,15 @@ public class DinnerApp extends JFrame {
         buttonPanel.add(editButton);
         buttonPanel.add(randomButton);
 
-        add(inputPanel, BorderLayout.NORTH);
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.add(combinedPanel, BorderLayout.NORTH);
+        mainPanel.add(new JScrollPane(dinnerList), BorderLayout.CENTER);
+
         add(buttonPanel, BorderLayout.WEST);
-        add(new JScrollPane(dinnerList), BorderLayout.CENTER);
+        add(mainPanel, BorderLayout.CENTER);
 
         updateButtonsState();
+        loadDefaultDinners();
     }
 
     private JButton createButton(String imagePath) {
@@ -109,19 +127,41 @@ public class DinnerApp extends JFrame {
         return button;
     }
 
+    private void loadDefaultDinners() {
+        if (currentUser == null) {
+            dinners.clear();
+            for (Dinner dinner : defaultDinners) {
+                dinners.add(dinner);
+            }
+            refreshDinnerList();
+        }
+    }
+
     private void loadDinners() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("dinners.dat"))) {
-            dinners = (ArrayList<Dinner>) ois.readObject();
-        } catch (Exception e) {
-            dinners = new ArrayList<>();
+        if (currentUser != null) {
+            File userFile = new File(currentUser + "_dinners.dat");
+            if (userFile.exists()) {
+                try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(userFile))) {
+                    dinners = (ArrayList<Dinner>) ois.readObject();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    dinners = new ArrayList<>();
+                }
+            } else {
+                dinners = new ArrayList<>();
+            }
+        } else {
+            loadDefaultDinners();
         }
     }
 
     private void saveDinners() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("dinners.dat"))) {
-            oos.writeObject(dinners);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (currentUser != null) {
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(currentUser + "_dinners.dat"))) {
+                oos.writeObject(dinners);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -164,6 +204,18 @@ public class DinnerApp extends JFrame {
         editButton.setEnabled(loggedIn);
         loginButton.setText(loggedIn ? "Logout" : "Login");
         registerButton.setVisible(!loggedIn); // Hide register button if logged in
+        updateWelcomeLabel();
+        if (!loggedIn) {
+            loadDefaultDinners();
+        }
+    }
+
+    private void updateWelcomeLabel() {
+        if (currentUser == null) {
+            welcomeLabel.setText("Welcome! Please log in to manage your dinners.");
+        } else {
+            welcomeLabel.setText("Welcome, " + currentUser + "! What dinner would you like to eat today?");
+        }
     }
 
     private class AddDinnerListener implements ActionListener {
@@ -204,7 +256,7 @@ public class DinnerApp extends JFrame {
                 JTextField descriptionField = new JTextField(dinner.getDescription(), 20);
 
                 JPanel panel = new JPanel(new GridLayout(2, 2));
-                panel.add(new JLabel("Diner:"));
+                panel.add(new JLabel("Dinner:"));
                 panel.add(dinnerField);
                 panel.add(new JLabel("Description:"));
                 panel.add(descriptionField);
@@ -226,10 +278,10 @@ public class DinnerApp extends JFrame {
     private class RandomDinnerListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             if (!dinners.isEmpty()) {
-                Random rand = new Random();
-                int randomIndex = rand.nextInt(dinners.size());
-                Dinner dinner = dinners.get(randomIndex);
-                JOptionPane.showMessageDialog(null, "Random Dinner: " + dinner.getName() + "\nDescription: " + dinner.getDescription());
+                Random random = new Random();
+                int randomIndex = random.nextInt(dinners.size());
+                Dinner randomDinner = dinners.get(randomIndex);
+                JOptionPane.showMessageDialog(null, "Random Dinner: " + randomDinner.getName() + "\nDescription: " + randomDinner.getDescription());
             }
         }
     }
@@ -237,17 +289,18 @@ public class DinnerApp extends JFrame {
     private class LoginListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             if (currentUser != null) {
-                int confirm = JOptionPane.showConfirmDialog(null, "Are you sure you want to logout ?", "Logout Confirmation", JOptionPane.YES_NO_OPTION);
+                int confirm = JOptionPane.showConfirmDialog(null, "Are you sure you want to log out?", "Logout Confirmation", JOptionPane.YES_NO_OPTION);
                 if (confirm == JOptionPane.YES_OPTION) {
-                currentUser = null;
-                updateButtonsState();
-                JOptionPane.showMessageDialog(null, "Logged out successfully.");
+                    currentUser = null;
+                    loadDefaultDinners();
+                    updateButtonsState();
+                    JOptionPane.showMessageDialog(null, "Logged out successfully.");
                 }
             } else {
                 JTextField usernameField = new JTextField(10);
                 JPasswordField passwordField = new JPasswordField(10);
 
-                JPanel panel = new JPanel(new GridLayout(3, 2));
+                JPanel panel = new JPanel(new GridLayout(2, 2));
                 panel.add(new JLabel("Username:"));
                 panel.add(usernameField);
                 panel.add(new JLabel("Password:"));
@@ -257,17 +310,15 @@ public class DinnerApp extends JFrame {
                 if (result == JOptionPane.OK_OPTION) {
                     String username = usernameField.getText();
                     String password = new String(passwordField.getPassword());
-                    if (users.containsKey(username)) {
-                        if (users.get(username).equals(password)) {
-                            currentUser = username;
-                        } else {
-                            JOptionPane.showMessageDialog(null, "Incorrect password. Please try again.");
-                            actionPerformed(e); // Reopen login dialog
-                        }
+                    if (users.containsKey(username) && users.get(username).equals(password)) {
+                        currentUser = username;
+                        loadDinners();
+                        updateButtonsState();
+                        refreshDinnerList();
+                        JOptionPane.showMessageDialog(null, "Login successful.");
                     } else {
-                        JOptionPane.showMessageDialog(null, "Username not found. Please register first.");
+                        JOptionPane.showMessageDialog(null, "Invalid username or password.", "Login Error", JOptionPane.ERROR_MESSAGE);
                     }
-                    updateButtonsState();
                 }
             }
         }
@@ -278,26 +329,26 @@ public class DinnerApp extends JFrame {
             JTextField usernameField = new JTextField(10);
             JPasswordField passwordField = new JPasswordField(10);
 
-            JPanel panel = new JPanel(new GridLayout(3, 2));
-            panel.add(new JLabel("New Username:"));
+            JPanel panel = new JPanel(new GridLayout(2, 2));
+            panel.add(new JLabel("Username:"));
             panel.add(usernameField);
-            panel.add(new JLabel("New Password:"));
+            panel.add(new JLabel("Password:"));
             panel.add(passwordField);
 
             int result = JOptionPane.showConfirmDialog(null, panel, "Register", JOptionPane.OK_CANCEL_OPTION);
             if (result == JOptionPane.OK_OPTION) {
                 String username = usernameField.getText();
                 String password = new String(passwordField.getPassword());
-                if (username.isEmpty() || password.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Username and password cannot be empty.");
-                    return;
-                }
-                if (users.containsKey(username)) {
-                    JOptionPane.showMessageDialog(null, "Username already exists. Please choose a different one.");
+                if (!username.isEmpty() && !password.isEmpty()) {
+                    if (!users.containsKey(username)) {
+                        users.put(username, password);
+                        saveUsers();
+                        JOptionPane.showMessageDialog(null, "Registration successful.");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Username already exists.", "Registration Error", JOptionPane.ERROR_MESSAGE);
+                    }
                 } else {
-                    users.put(username, password);
-                    saveUsers();
-                    JOptionPane.showMessageDialog(null, "User registered successfully.");
+                    JOptionPane.showMessageDialog(null, "Username or password cannot be empty.", "Registration Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         }
@@ -306,17 +357,16 @@ public class DinnerApp extends JFrame {
     private class DinnerMouseListener extends MouseAdapter {
         public void mouseClicked(MouseEvent e) {
             if (e.getClickCount() == 2) {
-                int index = dinnerList.locationToIndex(e.getPoint());
-                if (index != -1) {
-                    Dinner dinner = dinners.get(index);
-                    JOptionPane.showMessageDialog(null, "Dinner Information: " + dinner.getName() + "\nDescription: " + dinner.getDescription());
+                int selectedIndex = dinnerList.getSelectedIndex();
+                if (selectedIndex != -1) {
+                    Dinner dinner = listModel.getElementAt(selectedIndex);
+                    JOptionPane.showMessageDialog(null, "Dinner: " + dinner.getName() + "\nDescription: " + dinner.getDescription());
                 }
             }
         }
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new DinnerApp());
+        SwingUtilities.invokeLater(DinnerApp::new);
     }
 }
-
