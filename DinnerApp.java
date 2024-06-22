@@ -50,7 +50,7 @@ public class DinnerApp extends JFrame {
         users = new HashMap<>();
         loadUsers();
         dinners = new ArrayList<>();
-        setTitle("Dinner Manager");
+        setTitle("Diner Manager");
         setLayout(new BorderLayout());
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -85,7 +85,7 @@ public class DinnerApp extends JFrame {
         updateWelcomeLabel();
 
         JPanel inputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        inputPanel.add(new JLabel("Dinner:"));
+        inputPanel.add(new JLabel("Diner:"));
         inputPanel.add(dinnerInput);
         inputPanel.add(new JLabel("Description:"));
         inputPanel.add(descriptionInput);
@@ -212,7 +212,7 @@ public class DinnerApp extends JFrame {
 
     private void updateWelcomeLabel() {
         if (currentUser == null) {
-            welcomeLabel.setText("Welcome! Please log in to manage your dinners.");
+            welcomeLabel.setText("Welcome! Please log in to manage your diners.");
         } else {
             welcomeLabel.setText("Welcome, " + currentUser + "! What dinner would you like to eat today?");
         }
@@ -256,7 +256,7 @@ public class DinnerApp extends JFrame {
                 JTextField descriptionField = new JTextField(dinner.getDescription(), 20);
 
                 JPanel panel = new JPanel(new GridLayout(2, 2));
-                panel.add(new JLabel("Dinner:"));
+                panel.add(new JLabel("Diner:"));
                 panel.add(dinnerField);
                 panel.add(new JLabel("Description:"));
                 panel.add(descriptionField);
@@ -281,7 +281,7 @@ public class DinnerApp extends JFrame {
                 Random random = new Random();
                 int randomIndex = random.nextInt(dinners.size());
                 Dinner randomDinner = dinners.get(randomIndex);
-                JOptionPane.showMessageDialog(null, "Random Dinner: " + randomDinner.getName() + "\nDescription: " + randomDinner.getDescription());
+                JOptionPane.showMessageDialog(null, "Random Diner: " + randomDinner.getName() + "\nDescription: " + randomDinner.getDescription());
             }
         }
     }
@@ -360,7 +360,7 @@ public class DinnerApp extends JFrame {
                 int selectedIndex = dinnerList.getSelectedIndex();
                 if (selectedIndex != -1) {
                     Dinner dinner = listModel.getElementAt(selectedIndex);
-                    JOptionPane.showMessageDialog(null, "Dinner: " + dinner.getName() + "\nDescription: " + dinner.getDescription());
+                    JOptionPane.showMessageDialog(null, "Diner: " + dinner.getName() + "\nDescription: " + dinner.getDescription());
                 }
             }
         }
