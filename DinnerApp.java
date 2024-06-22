@@ -41,9 +41,9 @@ public class DinnerApp extends JFrame {
     private JButton addButton, deleteButton, editButton, loginButton, registerButton;
     private JLabel welcomeLabel;
     private static final Dinner[] defaultDinners = {
-        new Dinner("McDonalds", "Fast food chain"),
-        new Dinner("KFC", "Fast food chain specializing in fried chicken"),
-        new Dinner("Pizza Hut", "Pizza restaurant chain")
+        new Dinner("McDonalds", "Fast food restaurant"),
+        new Dinner("KFC", "Fast food restaurant that specializing in fried chicken"),
+        new Dinner("Pizza Hut", "Pizza restaurant ")
     };
 
     public DinnerApp() {
