@@ -1,4 +1,5 @@
 cjy:cjy123
 test:test213
+admin:admin123
 lee:abc123
 hau:hau123
