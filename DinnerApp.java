@@ -30,7 +30,7 @@ class Dinner implements Serializable {
     }
 }
 
-class DinnerApp extends JFrame {
+public class DinnerApp extends JFrame {
     private ArrayList<Dinner> dinners;
     private JTextField dinnerInput;
     private JTextField descriptionInput;
@@ -38,7 +38,7 @@ class DinnerApp extends JFrame {
     private JList<Dinner> dinnerList;
     private String currentUser;
     private Map<String, String> users;
-    private JButton addButton, deleteButton, editButton, randomButton, logoutButton;
+    private JButton addButton, deleteButton, editButton, loginButton, registerButton;
     private JLabel welcomeLabel;
     private static final Dinner[] defaultDinners = {
         new Dinner("McDonalds", "Fast food restaurant"),
@@ -50,16 +50,13 @@ class DinnerApp extends JFrame {
         users = new HashMap<>();
         loadUsers();
         dinners = new ArrayList<>();
-        setTitle("Dinner Manager");
+        setTitle("Diner Manager");
         setLayout(new BorderLayout());
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Initialize UI Components
         initUI();
-
-        // Show login dialog at startup
-        showLoginDialog();
+        setVisible(true);
     }
 
     private void initUI() {
@@ -68,14 +65,16 @@ class DinnerApp extends JFrame {
         addButton = createButton("add.png");
         deleteButton = createButton("delete.png");
         editButton = createButton("edit.png");
-        randomButton = createButton("random.png");
-        logoutButton = new JButton("Logout");
+        JButton randomButton = createButton("random.png");
+        loginButton = new JButton("Login");
+        registerButton = new JButton("Register");
 
         addButton.addActionListener(new AddDinnerListener());
         deleteButton.addActionListener(new DeleteDinnerListener());
         editButton.addActionListener(new EditDinnerListener());
         randomButton.addActionListener(new RandomDinnerListener());
-        logoutButton.addActionListener(new LogoutListener());
+        loginButton.addActionListener(new LoginListener());
+        registerButton.addActionListener(new RegisterListener());
 
         listModel = new DefaultListModel<>();
         dinnerList = new JList<>(listModel);
@@ -98,12 +97,13 @@ class DinnerApp extends JFrame {
         combinedPanel.add(inputPanel, BorderLayout.NORTH);
         combinedPanel.add(welcomePanel, BorderLayout.SOUTH);
 
-        JPanel buttonPanel = new JPanel(new GridLayout(5, 1, 5, 5));
+        JPanel buttonPanel = new JPanel(new GridLayout(6, 1, 5, 5));
+        buttonPanel.add(loginButton);
+        buttonPanel.add(registerButton);
         buttonPanel.add(addButton);
         buttonPanel.add(deleteButton);
         buttonPanel.add(editButton);
         buttonPanel.add(randomButton);
-        buttonPanel.add(logoutButton);
 
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.add(combinedPanel, BorderLayout.NORTH);
@@ -202,8 +202,8 @@ class DinnerApp extends JFrame {
         addButton.setEnabled(loggedIn);
         deleteButton.setEnabled(loggedIn);
         editButton.setEnabled(loggedIn);
-        randomButton.setEnabled(loggedIn);
-        logoutButton.setEnabled(loggedIn);
+        loginButton.setText(loggedIn ? "Logout" : "Login");
+        registerButton.setVisible(!loggedIn); // Hide register button if logged in
         updateWelcomeLabel();
         if (!loggedIn) {
             loadDefaultDinners();
@@ -212,101 +212,10 @@ class DinnerApp extends JFrame {
 
     private void updateWelcomeLabel() {
         if (currentUser == null) {
-            welcomeLabel.setText("Welcome! Please log in to manage your dinners.");
+            welcomeLabel.setText("Welcome! Please log in to manage your diners.");
         } else {
             welcomeLabel.setText("Welcome, " + currentUser + "! What dinner would you like to eat today?");
         }
-    }
-
-    //login
-    private void showLoginDialog() {
-        JDialog loginDialog = new JDialog(this, "Login", true);
-        loginDialog.setLayout(new GridLayout(3, 2));
-        loginDialog.setSize(300, 150);
-
-        JTextField usernameField = new JTextField(10);
-        JPasswordField passwordField = new JPasswordField(10);
-
-        JButton loginButton = new JButton("Login");
-        JButton registerButton = new JButton("Register");
-
-        loginDialog.add(new JLabel("Username:"));
-        loginDialog.add(usernameField);
-        loginDialog.add(new JLabel("Password:"));
-        loginDialog.add(passwordField);
-        loginDialog.add(loginButton);
-        loginDialog.add(registerButton);
-
-        loginButton.addActionListener(e -> {
-            String username = usernameField.getText();
-            String password = new String(passwordField.getPassword());
-            if (users.containsKey(username) && users.get(username).equals(password)) {
-                currentUser = username;
-                loadDinners();
-                updateButtonsState();
-                refreshDinnerList();
-                loginDialog.dispose();
-                JOptionPane.showMessageDialog(this, "Login successful.");
-            } else {
-                JOptionPane.showMessageDialog(this, "Invalid username or password.", "Login Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        registerButton.addActionListener(e -> {
-            loginDialog.dispose();
-            showRegisterDialog();
-        });
-
-        loginDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        loginDialog.setLocationRelativeTo(this);
-        loginDialog.setVisible(true);
-    }
-
-    //register
-    private void showRegisterDialog() {
-        JDialog registerDialog = new JDialog(this, "Register", true);
-        registerDialog.setLayout(new GridLayout(3, 2));
-        registerDialog.setSize(300, 150);
-
-        JTextField usernameField = new JTextField(10);
-        JPasswordField passwordField = new JPasswordField(10);
-
-        JButton registerButton = new JButton("Register");
-        JButton cancelButton = new JButton("Cancel");
-
-        registerDialog.add(new JLabel("Username:"));
-        registerDialog.add(usernameField);
-        registerDialog.add(new JLabel("Password:"));
-        registerDialog.add(passwordField);
-        registerDialog.add(registerButton);
-        registerDialog.add(cancelButton);
-
-        registerButton.addActionListener(e -> {
-            String username = usernameField.getText();
-            String password = new String(passwordField.getPassword());
-            if (!username.isEmpty() && !password.isEmpty()) {
-                if (!users.containsKey(username)) {
-                    users.put(username, password);
-                    saveUsers();
-                    registerDialog.dispose();
-                    JOptionPane.showMessageDialog(this, "Registration successful. Please log in.");
-                    showLoginDialog();
-                } else {
-                    JOptionPane.showMessageDialog(this, "Username already exists.", "Registration Error", JOptionPane.ERROR_MESSAGE);
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "Username and password cannot be empty.", "Registration Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        cancelButton.addActionListener(e -> {
-            registerDialog.dispose();
-            showLoginDialog();
-        });
-
-        registerDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        registerDialog.setLocationRelativeTo(this);
-        registerDialog.setVisible(true);
     }
 
     private class AddDinnerListener implements ActionListener {
@@ -342,14 +251,25 @@ class DinnerApp extends JFrame {
         public void actionPerformed(ActionEvent e) {
             int selectedIndex = dinnerList.getSelectedIndex();
             if (selectedIndex != -1) {
-                Dinner selectedDinner = dinners.get(selectedIndex);
-                String newName = JOptionPane.showInputDialog(null, "Enter new name:", selectedDinner.getName());
-                String newDescription = JOptionPane.showInputDialog(null, "Enter new description:", selectedDinner.getDescription());
-                if (newName != null && newDescription != null) {
-                    selectedDinner = new Dinner(newName, newDescription);
-                    dinners.set(selectedIndex, selectedDinner);
-                    refreshDinnerList();
-                    saveDinners();
+                Dinner dinner = dinners.get(selectedIndex);
+                JTextField dinnerField = new JTextField(dinner.getName(), 10);
+                JTextField descriptionField = new JTextField(dinner.getDescription(), 20);
+
+                JPanel panel = new JPanel(new GridLayout(2, 2));
+                panel.add(new JLabel("Diner:"));
+                panel.add(dinnerField);
+                panel.add(new JLabel("Description:"));
+                panel.add(descriptionField);
+
+                int result = JOptionPane.showConfirmDialog(null, panel, "Edit Dinner", JOptionPane.OK_CANCEL_OPTION);
+                if (result == JOptionPane.OK_OPTION) {
+                    String newDinnerName = dinnerField.getText();
+                    String newDescription = descriptionField.getText();
+                    if (!newDinnerName.isEmpty()) {
+                        dinners.set(selectedIndex, new Dinner(newDinnerName, newDescription));
+                        refreshDinnerList();
+                        saveDinners();
+                    }
                 }
             }
         }
@@ -359,35 +279,94 @@ class DinnerApp extends JFrame {
         public void actionPerformed(ActionEvent e) {
             if (!dinners.isEmpty()) {
                 Random random = new Random();
-                int index = random.nextInt(dinners.size());
-                Dinner randomDinner = dinners.get(index);
-                JOptionPane.showMessageDialog(null, "Random dinner: " + randomDinner.getName() + "\nDescription: " + randomDinner.getDescription());
+                int randomIndex = random.nextInt(dinners.size());
+                Dinner randomDinner = dinners.get(randomIndex);
+                JOptionPane.showMessageDialog(null, "Random Diner: " + randomDinner.getName() + "\nDescription: " + randomDinner.getDescription());
             }
         }
     }
 
-    //logout
-    private class LogoutListener implements ActionListener {
+    private class LoginListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            currentUser = null;
-            getContentPane().removeAll(); // Clear the main frame content
-            repaint(); // Refresh the frame
-            revalidate(); // Revalidate the layout
-            showLoginDialog(); // Show the login dialog
+            if (currentUser != null) {
+                int confirm = JOptionPane.showConfirmDialog(null, "Are you sure you want to log out?", "Logout Confirmation", JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    currentUser = null;
+                    loadDefaultDinners();
+                    updateButtonsState();
+                    JOptionPane.showMessageDialog(null, "Logged out successfully.");
+                }
+            } else {
+                JTextField usernameField = new JTextField(10);
+                JPasswordField passwordField = new JPasswordField(10);
+
+                JPanel panel = new JPanel(new GridLayout(2, 2));
+                panel.add(new JLabel("Username:"));
+                panel.add(usernameField);
+                panel.add(new JLabel("Password:"));
+                panel.add(passwordField);
+
+                int result = JOptionPane.showConfirmDialog(null, panel, "Login", JOptionPane.OK_CANCEL_OPTION);
+                if (result == JOptionPane.OK_OPTION) {
+                    String username = usernameField.getText();
+                    String password = new String(passwordField.getPassword());
+                    if (users.containsKey(username) && users.get(username).equals(password)) {
+                        currentUser = username;
+                        loadDinners();
+                        updateButtonsState();
+                        refreshDinnerList();
+                        JOptionPane.showMessageDialog(null, "Login successful.");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Invalid username or password.", "Login Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        }
+    }
+
+    private class RegisterListener implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            JTextField usernameField = new JTextField(10);
+            JPasswordField passwordField = new JPasswordField(10);
+
+            JPanel panel = new JPanel(new GridLayout(2, 2));
+            panel.add(new JLabel("Username:"));
+            panel.add(usernameField);
+            panel.add(new JLabel("Password:"));
+            panel.add(passwordField);
+
+            int result = JOptionPane.showConfirmDialog(null, panel, "Register", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.OK_OPTION) {
+                String username = usernameField.getText();
+                String password = new String(passwordField.getPassword());
+                if (!username.isEmpty() && !password.isEmpty()) {
+                    if (!users.containsKey(username)) {
+                        users.put(username, password);
+                        saveUsers();
+                        JOptionPane.showMessageDialog(null, "Registration successful.");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Username already exists.", "Registration Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Username or password cannot be empty.", "Registration Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
         }
     }
 
     private class DinnerMouseListener extends MouseAdapter {
         public void mouseClicked(MouseEvent e) {
             if (e.getClickCount() == 2) {
-                int index = dinnerList.locationToIndex(e.getPoint());
-                Dinner selectedDinner = dinnerList.getModel().getElementAt(index);
-                JOptionPane.showMessageDialog(null, "Dinner: " + selectedDinner.getName() + "\nDescription: " + selectedDinner.getDescription());
+                int selectedIndex = dinnerList.getSelectedIndex();
+                if (selectedIndex != -1) {
+                    Dinner dinner = listModel.getElementAt(selectedIndex);
+                    JOptionPane.showMessageDialog(null, "Diner: " + dinner.getName() + "\nDescription: " + dinner.getDescription());
+                }
             }
         }
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new DinnerApp().setVisible(true));
+        SwingUtilities.invokeLater(DinnerApp::new);
     }
 }
