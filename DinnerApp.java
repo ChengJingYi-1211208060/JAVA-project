@@ -218,6 +218,7 @@ class DinnerApp extends JFrame {
         }
     }
 
+    //login
     private void showLoginDialog() {
         JDialog loginDialog = new JDialog(this, "Login", true);
         loginDialog.setLayout(new GridLayout(3, 2));
@@ -261,6 +262,7 @@ class DinnerApp extends JFrame {
         loginDialog.setVisible(true);
     }
 
+    //register
     private void showRegisterDialog() {
         JDialog registerDialog = new JDialog(this, "Register", true);
         registerDialog.setLayout(new GridLayout(3, 2));
@@ -364,6 +366,7 @@ class DinnerApp extends JFrame {
         }
     }
 
+    //logout
     private class LogoutListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             currentUser = null;
