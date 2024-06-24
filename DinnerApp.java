@@ -30,6 +30,23 @@ class Dinner implements Serializable {
     }
 }
 
+class UIHelper {
+    public static void customizeLabel(JLabel label) {
+        label.setFont(new Font("Arial", Font.BOLD, 14));
+        label.setForeground(Color.BLUE);
+    }
+
+    public static void customizePanel(JPanel panel) {
+        panel.setBackground(Color.LIGHT_GRAY);
+    }
+
+    public static void customizeButton(JButton button) {
+        button.setFont(new Font("Arial", Font.PLAIN, 12));
+        button.setBackground(Color.WHITE);
+        button.setForeground(Color.DARK_GRAY);
+    }
+}
+
 public class DinnerApp extends JFrame {
     private ArrayList<Dinner> dinners;
     private JTextField dinnerInput;
@@ -50,13 +67,26 @@ public class DinnerApp extends JFrame {
         users = new HashMap<>();
         loadUsers();
         dinners = new ArrayList<>();
-        setTitle("Diner Manager");
+        setTitle("Dinner Manager");
         setLayout(new BorderLayout());
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         initUI();
+        setJMenuBar(createMenuBar());
         setVisible(true);
+    }
+
+    private JMenuBar createMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+        JMenu fileMenu = new JMenu("File");
+
+        JMenuItem exitMenuItem = new JMenuItem("Exit");
+        exitMenuItem.addActionListener(e -> System.exit(0));
+        fileMenu.add(exitMenuItem);
+
+        menuBar.add(fileMenu);
+        return menuBar;
     }
 
     private void initUI() {
@@ -82,22 +112,27 @@ public class DinnerApp extends JFrame {
         dinnerList.addMouseListener(new DinnerMouseListener());
 
         welcomeLabel = new JLabel();
+        UIHelper.customizeLabel(welcomeLabel);  // Customize welcomeLabel
         updateWelcomeLabel();
 
         JPanel inputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        UIHelper.customizePanel(inputPanel);  // Customize inputPanel
         inputPanel.add(new JLabel("Diner:"));
         inputPanel.add(dinnerInput);
         inputPanel.add(new JLabel("Description:"));
         inputPanel.add(descriptionInput);
 
         JPanel welcomePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        UIHelper.customizePanel(welcomePanel);  // Customize welcomePanel
         welcomePanel.add(welcomeLabel);
 
         JPanel combinedPanel = new JPanel(new BorderLayout());
+        UIHelper.customizePanel(combinedPanel);  // Customize combinedPanel
         combinedPanel.add(inputPanel, BorderLayout.NORTH);
         combinedPanel.add(welcomePanel, BorderLayout.SOUTH);
 
         JPanel buttonPanel = new JPanel(new GridLayout(6, 1, 5, 5));
+        UIHelper.customizePanel(buttonPanel);  // Customize buttonPanel
         buttonPanel.add(loginButton);
         buttonPanel.add(registerButton);
         buttonPanel.add(addButton);
@@ -106,14 +141,24 @@ public class DinnerApp extends JFrame {
         buttonPanel.add(randomButton);
 
         JPanel mainPanel = new JPanel(new BorderLayout());
+        UIHelper.customizePanel(mainPanel);  // Customize mainPanel
         mainPanel.add(combinedPanel, BorderLayout.NORTH);
         mainPanel.add(new JScrollPane(dinnerList), BorderLayout.CENTER);
 
         add(buttonPanel, BorderLayout.WEST);
         add(mainPanel, BorderLayout.CENTER);
 
+        customizeButtons();
         updateButtonsState();
         loadDefaultDinners();
+    }
+
+    private void customizeButtons() {
+        UIHelper.customizeButton(addButton);
+        UIHelper.customizeButton(deleteButton);
+        UIHelper.customizeButton(editButton);
+        UIHelper.customizeButton(loginButton);
+        UIHelper.customizeButton(registerButton);
     }
 
     private JButton createButton(String imagePath) {
@@ -124,6 +169,7 @@ public class DinnerApp extends JFrame {
         button.setMaximumSize(new Dimension(50, 50));
         button.setMinimumSize(new Dimension(50, 50));
         button.setText(null);
+        UIHelper.customizeButton(button);  // Customize button
         return button;
     }
 
